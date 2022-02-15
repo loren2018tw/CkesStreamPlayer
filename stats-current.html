@@ -1,64 +1,57 @@
 <html>
-<title>串流狀態</title>
+  <title>串流狀態</title>
 
-<head>
-
+  <head>
     <script src="https://unpkg.com/vue@next"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </head>
 
-</head>
-
-<body>
+  <body>
     http://140.128.179.106:8081/v1/stats/current/vhosts/default/apps/app
 
     <div id="counter">
-        Counter: {{ counter }}
+      Counter: {{ counter }}
 
-        <div> stats: {{stats}}</div>
+      <div>stats: {{stats}}</div>
     </div>
 
-
-
-
     <script>
+      const token = "Basic YWRtaW4xMjM=";
 
-        const token = "Basic b21lLWFjY2Vzcy10b2tlbg==";
+      //新增一個變數叫HexSchool api，它是一個axios實體物件。
+      //我們在裏面設定config物件，讓我們之後可以重用
+      const apiOME = axios.create({
+        baseURL: `http://140.128.179.106:8081/v1`,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: token,
+        },
+      });
 
-        //新增一個變數叫HexSchool api，它是一個axios實體物件。
-        //我們在裏面設定config物件，讓我們之後可以重用
-        const apiOME = axios.create({
-            baseURL: `http://140.128.179.106:8081/v1`,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": token,
-            }
-        })
+      const Counter = {
+        data() {
+          return {
+            counter: 0,
+            stats: "no data",
+          };
+        },
+        created() {
+          this.stats = "cccc";
+          apiOME
+            .get("/stats/current/vhosts/default/apps/app")
+            .then(function (response) {
+              stats = "sss";
+              console.log(response);
+            })
+            .catch(function (error) {
+              stats = "error";
+              console.log(error);
+            });
+        },
+      };
 
-        const Counter = {
-            data() {
-                return {
-                    counter: 0,
-                    stats: "no data"
-                }
-            },
-            created() {
-                this.stats = "cccc"
-                apiOME.get('/stats/current/vhosts/default/apps/app')
-                    .then(function (response) {
-                        stats = response;
-                        console.log(response);
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
-
-            }
-
-        }
-
-        Vue.createApp(Counter).mount('#counter')
+      Vue.createApp(Counter).mount("#counter");
     </script>
-</body>
-
+  </body>
 </html>

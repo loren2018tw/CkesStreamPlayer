@@ -1,6 +1,71 @@
-<html>
-<title>Ckes直播臺</title>
-<body>
+<!DOCTYPE html>
 
+<head>
+    <title>Ckes Live</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div id="app">
+        <!-- OvenPlayer will be initialized inside this element. -->
+        <div>臺中市東區成功國民小學 校內直播平台</div>
+        <div style="color: crimson;">1.因瀏覽器安全限制，重新載入影片後，會自動開啟靜音，煩請手動調整網頁播放器的音量<br />
+            2.如出現驚嘆號，表示直播未開始，請稍待幾分鐘後手動按下「F5」重新載入
+        </div>
+
+        <div style="width:80%;">
+            <div id="player_id"></div>
+        </div>
+
+        {{counter}} <br />
+
+        {{stats}}
+    </div>
+
+    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
+
+    <script>
+
+        // Initialize OvenPlayer
+        const player = OvenPlayer.create('player_id', {
+            "autoStart": true,
+            "mute": true,
+            sources: [
+                {
+                    label: 'Ckes Live',
+                    // Set the type to 'webrtc'
+                    type: 'webrtc',
+                    // Set the file to WebRTC Signaling URL with OvenMediaEngine 
+                    file: 'ws://140.128.179.106:3333/app/ckeslive'
+                }
+            ],
+            "webrtcConfig": {
+                "timeoutMaxRetry": 100,
+                "connectionTimeout": 10000
+            }
+        });
+    </script>
+
+    <script>
+        const App = {
+            data() {
+                return {
+                    counter: 0,
+                    stats: "no data",
+                };
+            },
+            creat() {
+                this.counter = player.getPlaylist();
+            }
+        };
+
+        Vue.createApp(App).mount("#app");
+    </script>
+    </script>
 </body>
+
 </html>
