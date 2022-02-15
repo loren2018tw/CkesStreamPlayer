@@ -5,65 +5,121 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .box {
+            width: 80%;
+            border: 5px dashed #f7a239;
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="app">
-        <!-- OvenPlayer will be initialized inside this element. -->
-        <div>臺中市東區成功國民小學 校內直播平台</div>
-        <div style="color: crimson;">1.因瀏覽器安全限制，重新載入影片後，會自動開啟靜音，煩請手動調整網頁播放器的音量<br />
-            2.如出現驚嘆號，表示直播未開始，請稍待幾分鐘後手動按下「F5」重新載入
+
+    <!-- OvenPlayer will be initialized inside this element. -->
+    <div>臺中市東區成功國民小學 校內直播平台</div>
+    <div style="color: crimson;">因瀏覽器安全限制，重新載入影片後，會自動開啟靜音，煩請手動調整網頁播放器的音量<br />
+
+    </div>
+
+    <div id="vue-app" style="width:80%;">
+        <div class="box" v-show="!isLoading">
+            <img src="./standby.png" width="100">
         </div>
 
-        <div style="width:80%;">
+        <div v-show="isLoading">
             <div id="player_id"></div>
         </div>
 
-        {{counter}} <br />
-
-        {{stats}}
+        {{status}} <br />
+        OvenPlayer版本： {{version}} <br />
+        前端設計: Loren Li
     </div>
 
-    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/vue@3.2.31"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
 
     <script>
-
-        // Initialize OvenPlayer
-        const player = OvenPlayer.create('player_id', {
-            "autoStart": true,
-            "mute": true,
-            sources: [
-                {
-                    label: 'Ckes Live',
-                    // Set the type to 'webrtc'
-                    type: 'webrtc',
-                    // Set the file to WebRTC Signaling URL with OvenMediaEngine 
-                    file: 'ws://140.128.179.106:3333/app/ckeslive'
-                }
-            ],
-            "webrtcConfig": {
-                "timeoutMaxRetry": 100,
-                "connectionTimeout": 10000
-            }
-        });
-    </script>
-
-    <script>
-        const App = {
+        const VueApp = {
             data() {
                 return {
-                    counter: 0,
-                    stats: "no data",
+                    status: "---",
+                    version: "no data",
+                    player: null,
+                    isLoading: false,
+                    reloadTimer: null,
                 };
             },
-            creat() {
-                this.counter = player.getPlaylist();
+            mounted() {
+                this.loadPlayer();
+            },
+            methods: {
+                loadPlayer: function () {
+
+                    this.player = OvenPlayer.create('player_id', {
+                        autoStart: true,
+                        autoFallback: false,
+                        mute: true, // 一定要設定靜音，browser才會自動播放
+                        sources: [
+                            {
+                                label: 'Ckes Live',
+                                type: 'webrtc',
+                                file: 'ws://140.128.179.106:3333/app/ckeslive'
+                            }
+                        ]
+                    });
+                    this.version = this.player.getVersion();
+                    this.player.on('ready', function () {
+                        //vm.status = "ready";
+                    });
+
+                    this.player.on('stateChanged', function (e) {
+                        //vm.status = e;
+                        if (e.newstate === "playing") {
+                            vm.isLoading = true;
+                            vm.status = "";
+                        }
+
+                    });
+
+                    this.player.once('error', function (e) {
+                        vm.status = "目前沒有直播信號，請稍待好戲登場...";
+                        vm.isLoading = false;
+                        console.log(e);
+
+                        if (this.reloadTimer) {
+                            clearInterval(this.reloadTimer);
+                            this.reloadTimer = null;
+                        }
+
+                        vm.reloadTimer = setTimeout(function () {
+                            vm.unLoadPlayer();
+                            vm.loadPlayer();
+                        }, 10000);
+                    });
+                },
+                unLoadPlayer: function (optionChanged) {
+
+                    if (this.reloadTimer) {
+                        clearInterval(this.reloadTimer);
+                        this.reloadTimer = null;
+                    }
+
+                    if (this.player) {
+                        this.player.remove();
+                        this.player = null;
+                    }
+                },
+
             }
         };
 
-        Vue.createApp(App).mount("#app");
+        const vm = Vue.createApp(VueApp).mount("#vue-app");
     </script>
     </script>
 </body>
