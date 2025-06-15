@@ -2,7 +2,7 @@
   <title>串流狀態</title>
 
   <head>
-    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   </head>
 
@@ -10,13 +10,11 @@
     http://140.128.179.106:8081/v1/stats/current/vhosts/default/apps/app
 
     <div id="counter">
-      Counter: {{ counter }}
-
-      <div>stats: {{stats}}</div>
+      <pre>stats: {{stats}}</pre>
     </div>
 
     <script>
-      const token = "Basic YWRtaW4xMjM=";
+      const token = "Basic YWRtaW46YWRtaW4xMjM";
 
       //新增一個變數叫HexSchool api，它是一個axios實體物件。
       //我們在裏面設定config物件，讓我們之後可以重用
@@ -32,26 +30,24 @@
       const Counter = {
         data() {
           return {
-            counter: 0,
             stats: "no data",
           };
         },
         created() {
-          this.stats = "cccc";
           apiOME
             .get("/stats/current/vhosts/default/apps/app")
             .then(function (response) {
-              stats = "sss";
+              vm.stats = JSON.stringify(response.data, null, 2);
               console.log(response);
             })
             .catch(function (error) {
-              stats = "error";
+              vm.stats = "error";
               console.log(error);
             });
         },
       };
 
-      Vue.createApp(Counter).mount("#counter");
+      const vm = Vue.createApp(Counter).mount("#counter");
     </script>
   </body>
 </html>
